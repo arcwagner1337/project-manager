@@ -9,10 +9,8 @@ namespace test_task.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "Leader")]
     public class EmployeesController : Controller
     {
-        // Вместо чистого контекста внедряем UserManager для управления учетками и ролями
         private readonly UserManager<Employee> _userManager;
         private readonly AppDbContext _context;
 
@@ -22,7 +20,7 @@ namespace test_task.Controllers
             _context = context;
         }
 
-        // 1. GET: api/employees (Получить всех с их ролями)
+        // GET: api/employees (Get everyone with their roles)
         [HttpGet]
         [Authorize(Roles = "Leader")]
         public async Task<ActionResult> GetEmployees()
@@ -32,7 +30,6 @@ namespace test_task.Controllers
 
             foreach (var e in employees)
             {
-                // Достаем роль из Identity для каждого сотрудника
                 var roles = await _userManager.GetRolesAsync(e);
                 result.Add(new
                 {
@@ -41,14 +38,14 @@ namespace test_task.Controllers
                     e.LastName,
                     e.MiddleName,
                     e.Email,
-                    Role = roles.FirstOrDefault() ?? "Employee" // Если роли нет, пишем дефолтную
+                    Role = roles.FirstOrDefault() ?? "Employee" 
                 });
             }
 
             return Ok(result);
         }
 
-        // 2. GET: api/employees/search?query=ива (AJAX поиск с ролями)
+        // GET: api/employees/search?query=asd (AJAX search with roles)
         [HttpGet("search")]
         [Authorize(Roles = "Leader,ProjectManager")]
         public async Task<ActionResult> SearchEmployees([FromQuery] string query)
@@ -84,14 +81,14 @@ namespace test_task.Controllers
             return Ok(resultWithRoles);
         }
 
-        // 3. POST: api/employees (Создать сотрудника с паролем и ролью)
+        // POST: api/employees (Create an employee with a password and role)
         [HttpPost]
         [Authorize(Roles = "Leader")]
         public async Task<ActionResult> CreateEmployee([FromBody] CreateEmployeeDto dto)
         {
             var employee = new Employee
             {
-                UserName = dto.Email, // Identity требует UserName, дублируем Email
+                UserName = dto.Email, 
                 Email = dto.Email,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
@@ -99,8 +96,6 @@ namespace test_task.Controllers
                 EmailConfirmed = true
             };
 
-            // Создаем пользователя через UserManager (он сам захэширует пароль)
-            // Если пароль не передан, ставим дефолтный, чтобы карточку можно было создать
             var result = await _userManager.CreateAsync(employee, dto.Password ?? "password123");
 
             if (!result.Succeeded)
@@ -108,13 +103,12 @@ namespace test_task.Controllers
                 return BadRequest(result.Errors);
             }
 
-            // Назначаем роль
             await _userManager.AddToRoleAsync(employee, dto.Role);
 
             return Ok(new { message = "Сотрудник успешно создан", id = employee.Id });
         }
 
-        // 4. PUT: api/employees/{id} (Обновить данные и роль)
+        // PUT: api/employees/{id} (Update data and role)
         [HttpPut("{id}")]
         [Authorize(Roles = "Leader")]
         public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeDto dto)
@@ -134,7 +128,6 @@ namespace test_task.Controllers
             var result = await _userManager.UpdateAsync(employee);
             if (!result.Succeeded) return BadRequest(result.Errors);
 
-            // Обновляем роль: удаляем старые, привязываем новую
             var currentRoles = await _userManager.GetRolesAsync(employee);
             if (!currentRoles.Contains(dto.Role))
             {
@@ -145,7 +138,7 @@ namespace test_task.Controllers
             return NoContent();
         }
 
-        // 5. DELETE: api/employees/{id}
+        // DELETE: api/employees/{id}
         [HttpDelete("{id}")]
         [Authorize(Roles = "Leader")]
         public async Task<IActionResult> DeleteEmployee(int id)
@@ -153,13 +146,12 @@ namespace test_task.Controllers
             var employee = await _userManager.FindByIdAsync(id.ToString());
             if (employee == null) return NotFound("Сотрудник не найден");
 
-            // Перестраховка: каскадом удалятся и связи с ролями
             await _userManager.DeleteAsync(employee);
             return Ok(new { message = "Сотрудник успешно удален" });
         }
 
         [HttpGet("whoami")]
-        [Authorize] // Доступно любому залогиненному
+        [Authorize]
         public IActionResult WhoAmI()
         {
             return Ok(new

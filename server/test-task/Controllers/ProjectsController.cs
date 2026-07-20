@@ -9,8 +9,8 @@ namespace test_task.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // Замок на весь контроллер: неавторизованные сразу получают 401
-    public class ProjectsController : ControllerBase // Изменил на ControllerBase (более правильно для чистых API)
+    [Authorize] 
+    public class ProjectsController : ControllerBase 
     {
         private readonly AppDbContext _context;
 
@@ -19,9 +19,7 @@ namespace test_task.Controllers
             _context = context;
         }
 
-        // ====================================================================
-        // 1. GET: api/projects (Список проектов с фильтрацией, сортировкой и RBAC)
-        // ====================================================================
+        // GET: api/projects (List of projects with filtering, sorting, and RBAC)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetProjects(
             [FromQuery] DateTime? startDateFrom,
@@ -30,7 +28,6 @@ namespace test_task.Controllers
             [FromQuery] string? sortBy,
             [FromQuery] bool descending = false)
         {
-            // Достаем ID авторизованного пользователя
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdString, out int currentUserId)) return Unauthorized();
 
@@ -39,32 +36,28 @@ namespace test_task.Controllers
                 .Include(p => p.Employees)
                 .AsQueryable();
 
-            // --- ИЗОЛЯЦИЯ ДАННЫХ (RBAC ФИЛЬТР) ---
+            // RBAC filter
             if (User.IsInRole("Leader"))
-            {
-                // Руководитель видит абсолютно всё
+            {   
             }
             else if (User.IsInRole("ProjectManager"))
             {
-                // ПМ видит только те проекты, где он назначен менеджером
                 query = query.Where(p => p.ProjectManagerId == currentUserId);
             }
             else if (User.IsInRole("Employee"))
             {
-                // Обычный сотрудник видит только те проекты, где он в списке исполнителей
                 query = query.Where(p => p.Employees.Any(e => e.Id == currentUserId));
             }
             else
             {
-                return Forbid(); // Если у пользователя нет валидной роли
+                return Forbid(); 
             }
 
-            // --- ТВОЯ ФИЛЬТРАЦИЯ ---
             if (startDateFrom.HasValue) query = query.Where(p => p.StartDate >= startDateFrom.Value);
             if (startDateTo.HasValue)   query = query.Where(p => p.StartDate <= startDateTo.Value);
             if (priority.HasValue)     query = query.Where(p => p.Priority == priority.Value);
 
-            // --- ТВОЯ СОРТИРОВКА ---
+            // sort
             if (!string.IsNullOrWhiteSpace(sortBy))
             {
                 switch (sortBy.ToLower())
@@ -87,7 +80,7 @@ namespace test_task.Controllers
                 }
             }
 
-            // Твой маппинг в DTO
+            // DTO mapping
             var projects = await query.Select(p => new ProjectResponseDto
             {
                 Id = p.Id,
@@ -112,11 +105,9 @@ namespace test_task.Controllers
             return Ok(projects);
         }
 
-        // ====================================================================
-        // 2. POST: api/projects (Создание проекта через визард)
-        // ====================================================================
+        // POST: api/projects (Creating a project using the wizard)
         [HttpPost]
-        [Authorize(Roles = "Leader,ProjectManager")] // Исполнители (Employee) сюда не пройдут
+        [Authorize(Roles = "Leader,ProjectManager")] 
         public async Task<ActionResult> CreateProject([FromBody] CreateProjectDto dto)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -135,8 +126,6 @@ namespace test_task.Controllers
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
                 Priority = dto.Priority,
-                // Если создает PM — он принудительно становится менеджером проекта. 
-                // Лидер может назначить кого угодно из DTO.
                 ProjectManagerId = User.IsInRole("ProjectManager") ? currentUserId : dto.ProjectManagerId
             };
 
@@ -154,9 +143,8 @@ namespace test_task.Controllers
             return Ok(new { message = "Проект успешно создан", projectId = project.Id });
         }
 
-        // ====================================================================
-        // 3. GET: api/projects/{id} (Просмотр одного проекта с проверкой доступа)
-        // ====================================================================
+
+        // GET: api/projects/{id} (Viewing a single project with access verification)
         [HttpGet("{id}")]
         public async Task<ActionResult<ProjectResponseDto>> GetProject(int id)
         {
@@ -170,16 +158,15 @@ namespace test_task.Controllers
 
             if (project == null) return NotFound("Проект не найден");
 
-            // Проверка прав доступа к конкретной записи
             if (!User.IsInRole("Leader"))
             {
                 if (User.IsInRole("ProjectManager") && project.ProjectManagerId != currentUserId)
                 {
-                    return Forbid(); // PM ломится в чужой проект
+                    return Forbid(); 
                 }
                 if (User.IsInRole("Employee") && !project.Employees.Any(e => e.Id == currentUserId))
                 {
-                    return Forbid(); // Сотрудник ломится туда, где он не работает
+                    return Forbid(); 
                 }
             }
 
@@ -207,9 +194,7 @@ namespace test_task.Controllers
             return Ok(dto);
         }
 
-        // ====================================================================
-        // 4. PUT: api/projects/{id} (Редактировать проект целиком)
-        // ====================================================================
+        // PUT: api/projects/{id} (Edit the entire project)
         [HttpPut("{id}")]
         [Authorize(Roles = "Leader,ProjectManager")]
         public async Task<IActionResult> UpdateProject(int id, [FromBody] CreateProjectDto dto)
@@ -223,7 +208,6 @@ namespace test_task.Controllers
 
             if (project == null) return NotFound("Проект не найден");
             
-            // Если ты PM — редактировать можешь только СВОЙ проект
             if (User.IsInRole("ProjectManager") && project.ProjectManagerId != currentUserId)
             {
                 return Forbid();
@@ -238,7 +222,6 @@ namespace test_task.Controllers
             project.EndDate = dto.EndDate;
             project.Priority = dto.Priority;
             
-            // Менять менеджеров проекта на лету разрешено только Лидеру
             if (User.IsInRole("Leader"))
             {
                 project.ProjectManagerId = dto.ProjectManagerId;
@@ -257,11 +240,9 @@ namespace test_task.Controllers
             return NoContent();
         }
 
-        // ====================================================================
-        // 5. DELETE: api/projects/{id} (Удалить проект — Только Leader)
-        // ====================================================================
+        // DELETE: api/projects/{id} (Delete project)
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Leader")] // Ни ПМ, ни обычный рабочий этот метод даже не вызовут
+        [Authorize(Roles = "Leader")] 
         public async Task<IActionResult> DeleteProject(int id)
         {
             var project = await _context.Projects.FindAsync(id);
@@ -272,9 +253,7 @@ namespace test_task.Controllers
             return Ok(new { message = "Проект успешно удален" });
         }
 
-        // ====================================================================
-        // 6. POST: api/projects/{id}/employees/{employeeId} (Добавить сотрудника на проект)
-        // ====================================================================
+        // POST: api/projects/{id}/employees/{employeeId} (Add an employee to the project)
         [HttpPost("{id}/employees/{employeeId}")]
         [Authorize(Roles = "Leader,ProjectManager")]
         public async Task<IActionResult> AddEmployeeToProject(int id, int employeeId)
@@ -285,7 +264,6 @@ namespace test_task.Controllers
             var project = await _context.Projects.Include(p => p.Employees).FirstOrDefaultAsync(p => p.Id == id);
             if (project == null) return NotFound("Проект не найден");
 
-            // PM может добавлять людей только в свой собственный проект
             if (User.IsInRole("ProjectManager") && project.ProjectManagerId != currentUserId) return Forbid();
 
             var employee = await _context.Employees.FindAsync(employeeId);
@@ -301,9 +279,7 @@ namespace test_task.Controllers
             return Ok(new { message = "Сотрудник успешно добавлен на проект" });
         }
 
-        // ====================================================================
-        // 7. DELETE: api/projects/{id}/employees/{employeeId} (Убрать сотрудника с проекта)
-        // ====================================================================
+        // DELETE: api/projects/{id}/employees/{employeeId} (Remove employee from the project)
         [HttpDelete("{id}/employees/{employeeId}")]
         [Authorize(Roles = "Leader,ProjectManager")]
         public async Task<IActionResult> RemoveEmployeeFromProject(int id, int employeeId)
@@ -314,7 +290,6 @@ namespace test_task.Controllers
             var project = await _context.Projects.Include(p => p.Employees).FirstOrDefaultAsync(p => p.Id == id);
             if (project == null) return NotFound("Проект не найден");
 
-            // PM может кикать людей только со своего собственного проекта
             if (User.IsInRole("ProjectManager") && project.ProjectManagerId != currentUserId) return Forbid();
 
             var employee = project.Employees.FirstOrDefault(e => e.Id == employeeId);

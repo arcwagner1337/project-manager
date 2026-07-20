@@ -10,11 +10,10 @@
         public DateTime EndDate { get; set; }
         public int Priority { get; set; }
 
-        // Вместо полной модели сотрудника отдаем только понятные фронту данные
-        public int? ProjectManagerId { get; set; }
-        public string? ProjectManagerName { get; set; } // Например: "Вагнер Александр"
 
-        // Список исполнителей
+        public int? ProjectManagerId { get; set; }
+        public string? ProjectManagerName { get; set; } 
+
         public List<EmployeeShortDto> Employees { get; set; } = new();
     }
 
@@ -35,16 +34,9 @@
         public DateTime EndDate { get; set; }
         public int Priority { get; set; }
         public int? ProjectManagerId { get; set; }
-        public List<int> EmployeeIds { get; set; } = new(); // ID сотрудников, выбранных на 4-м шаге визарда
+        public List<int> EmployeeIds { get; set; } = new(); 
     }
 
-    //public class UpdateEmployeeDto
-    //{
-    //    public string FirstName { get; set; } = null!;
-    //    public string LastName { get; set; } = null!;
-    //    public string? MiddleName { get; set; }
-    //    public string Email { get; set; } = null!;
-    //}
 
 
     public class LoginDto

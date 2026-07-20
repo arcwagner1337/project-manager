@@ -43,11 +43,11 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
     const [endDate, setEndDate] = useState(project.endDate.split('T')[0]);
     const [priority, setPriority] = useState(project.priority.toString());
 
-    // Документы
+    // Docs states
     const [documents, setDocuments] = useState<ProjectDocument[]>([]);
     const [uploading, setUploading] = useState(false);
 
-    // Для выбора PM (руководителя)
+    // For PM select
     const [pm, setPm] = useState<{ id: number; fullName: string } | null>(
         project.projectManagerId
             ? { id: project.projectManagerId, fullName: project.projectManagerName || 'Неизвестный менеджер' }
@@ -55,13 +55,13 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
     );
     const [isChangingPm, setIsChangingPm] = useState(false);
 
-    // Для выбора Команды участников
+    // For Team select 
     const [employees, setEmployees] = useState<Employee[]>(project.employees);
 
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Свежий хук: подгружаем файлы проекта при монтировании по project.id
+    // load project files on mount using project.id
     useEffect(() => {
         if (project.id) {
             loadProjectDocuments();
@@ -70,7 +70,6 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
 
     const loadProjectDocuments = async () => {
         try {
-            // const res = await axios.get(`https://localhost:7291/api/documents/project/${project.id}`);
             const res = await axios.get(`/api/documents/project/${project.id}`);
 
             setDocuments(res.data);
@@ -88,13 +87,12 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
 
         setUploading(true);
         try {
-            // await axios.post(`https://localhost:7291/api/documents/upload/${project.id}`, formData, {
             await axios.post(`/api/documents/upload/${project.id}`, formData, {
 
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             e.target.value = ''; 
-            await loadProjectDocuments(); // Обновляем список после успешной загрузки
+            await loadProjectDocuments(); 
         } catch (err) {
             console.error("Ошибка при загрузке файла:", err);
             setError("Не удалось загрузить файл");
@@ -107,7 +105,6 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
         if (!window.confirm("Удалить этот документ?")) return;
 
         try {
-            // await axios.delete(`https://localhost:7291/api/documents/${docId}`);
             await axios.delete(`/api/documents/${docId}`);
 
             setDocuments(prev => prev.filter(doc => doc.id !== docId));
@@ -118,7 +115,6 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
     };
 
     const handleAddTeamMember = (emp: Employee) => {
-        // Дополнительная проверка на случай обхода эксклюдов
         if (pm && emp.id === pm.id) {
             setError("Руководитель проекта не может быть членом команды исполнителей");
             return;
@@ -126,7 +122,7 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
 
         if (!employees.some(e => e.id === emp.id)) {
             setEmployees(prev => [...prev, emp]);
-            setError(null); // Сбрасываем ошибку, если она была связана с валидацией
+            setError(null); 
         }
     };
 
@@ -149,7 +145,6 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
             setSaving(false);
             return;
         }
-        // Финальный рубеж обороны перед отправкой
         if (employees.some(e => e.id === pm.id)) {
             setError("Ошибка: Руководитель проекта не может дублироваться в списке исполнителей");
             setSaving(false);
@@ -169,7 +164,6 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
         };
 
         try {
-            // await axios.put(`https://localhost:7291/api/Projects/${project.id}`, payload);
             await axios.put(`/api/Projects/${project.id}`, payload);
 
             onSave();
@@ -204,7 +198,7 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
 
                 <form onSubmit={handleUpdate} className="space-y-5">
 
-                    {/* Название */}
+                    {/* Name */}
                     <div className="space-y-1">
                         <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Название проекта</label>
                         <input
@@ -216,10 +210,10 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
                         />
                     </div>
 
-                    {/* Компании */}
+                    {/* Companies */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Заказчик</label>
+                            <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Компания-Заказчик</label>
                             <input
                                 type="text"
                                 required
@@ -229,7 +223,7 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Исполнитель</label>
+                            <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Компания-Исполнитель</label>
                             <input
                                 type="text"
                                 required
@@ -240,7 +234,7 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
                         </div>
                     </div>
 
-                    {/* Даты и приоритет */}
+                    {/* Dates and priority */}
                     <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-1">
                             <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Начало</label>
@@ -269,7 +263,7 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
 
                     <hr className="border-zinc-900 my-2" />
 
-                    {/* Руководитель проекта (PM) */}
+                    {/* Project Manager */}
                     <div className="space-y-2">
                         <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono block">Руководитель проекта</span>
 
@@ -299,7 +293,7 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
                                         setPm({ id: emp.id, fullName: emp.fullName });
                                         setIsChangingPm(false);
                                         setError(null);
-                                        // ИЗМЕНЕНИЕ 1: Автоматически исключаем его из списка исполнителей, если он там был
+                                        
                                         setEmployees(prev => prev.filter(e => e.id !== emp.id));
                                     }}
                                 />
@@ -316,7 +310,7 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
                         )}
                     </div>
 
-                    {/* Команда исполнителей */}
+                    {/* Team */}
                     <div className="space-y-2">
                         <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono block">Команда проекта</span>
 
@@ -347,12 +341,11 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
                             label="Добавить сотрудника в команду"
                             placeholder="Введите имя для добавления..."
                             onSelect={handleAddTeamMember}
-                            // ИЗМЕНЕНИЕ 2: Включаем id руководителя в список исключений для поиска
                             excludeIds={pm ? [...employees.map(e => e.id), pm.id] : employees.map(e => e.id)}
                         />
                     </div>
 
-                    {/* БЛОК ДОКУМЕНТАЦИИ ПРОЕКТА */}
+                    {/* PROJECT DOCUMENTATION SECTION */}
                     <div className="mt-6 border-t border-zinc-900 pt-4">
                         <div className="flex items-center justify-between mb-3">
                             <label className="block text-[10px] uppercase tracking-wider text-zinc-500 font-mono">
@@ -408,7 +401,7 @@ export default function ProjectEditModal({ project, onClose, onSave }: ProjectEd
                         )}
                     </div>
 
-                    {/* Кнопки */}
+                    {/* Buttons */}
                     <div className="mt-8 pt-4 border-t border-zinc-900 flex justify-end space-x-3">
                         <button
                             type="button"

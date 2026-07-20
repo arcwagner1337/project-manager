@@ -36,7 +36,7 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
 
-    // Стейты для фильтрации
+    // Filtering states
     const [searchQuery, setSearchQuery] = useState('');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
@@ -48,9 +48,6 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
         setLoading(true);
         setError(null);
         try {
-            // Передаем параметры, как их просит Swagger. 
-            // Если на бэке аргументы метода не Nullable, отсутствие этих параметров в GET-запросе как раз и вызывает 500!
-            // const res = await axios.get('https://localhost:7291/api/Projects', {
             const res = await axios.get('/api/Projects', {
 
                 params: {
@@ -64,8 +61,6 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
             setProjects(res.data);
         } catch (err: any) {
             console.error("Ошибка загрузки проектов:", err);
-
-            // Если бэк вернул 500, вытаскиваем детальное описание ошибки из эксепшена ASP.NET
             const apiError = err.response?.data;
             const detail = typeof apiError === 'string'
                 ? apiError
@@ -79,7 +74,6 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
 
 
     const handleDeleteProject = async (id: number, e: React.MouseEvent) => {
-        // Останавливаем всплытие события, чтобы при клике на "Удалить" не открывалась модалка деталей
         e.stopPropagation();
 
         if (!window.confirm("Вы уверены, что хотите удалить этот проект и все связанные документы?")) {
@@ -87,10 +81,9 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
         }
 
         try {
-            // await axios.delete(`https://localhost:7291/api/Projects/${id}`);
+
             await axios.delete(`/api/Projects/${id}`);
 
-            // Обновляем локальный стейт, убирая удаленный проект
             setProjects((prev) => prev.filter(p => p.id !== id));
         } catch (err: any) {
             console.error("Ошибка при удалении проекта:", err);
@@ -121,7 +114,7 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
         });
     };
 
-    // Фильтрация проектов на клиенте
+    // Client-side project filtering
     const filteredProjects = projects.filter(proj => {
         const matchesSearch = proj.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             proj.customerCompany.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -135,7 +128,7 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
     return (
         <div className="space-y-8 max-w-6xl mx-auto px-4">
 
-            {/* 1. ВЕРХНЯЯ ПАНЕЛЬ С АНАЛИТИКОЙ И КНОПКОЙ */}
+            {/* Top panel with analytics and a button */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800 pb-6">
                 <div>
                     <h1 className="text-2xl font-light uppercase tracking-widest text-white">Панель проектов</h1>
@@ -143,17 +136,19 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
                         Всего проектов в системе: {projects.length}
                     </p>
                 </div>
-                <button
-                    onClick={onStartWizard}
-                    className="self-start sm:self-center rounded-lg bg-white px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-black hover:bg-zinc-200 transition-all shadow-md active:scale-95"
-                >
-                    + Создать проект
-                </button>
+                {(currentUser?.role === 'Leader' || currentUser?.role === 'ProjectManager') && (
+                    <button
+                        onClick={onStartWizard}
+                        className="self-start sm:self-center rounded-lg bg-white px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-black hover:bg-zinc-200 transition-all shadow-md active:scale-95"
+                    >
+                        + Создать проект
+                    </button>
+                )}
             </div>
 
-            {/* 2. БЛОК ФИЛЬТРОВ */}
+            {/* 2. Filter Section */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800/80">
-                {/* Поиск */}
+                {/* search */}
                 <div className="space-y-1">
                     <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-mono">Поиск проекта</label>
                     <input
@@ -165,7 +160,7 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
                     />
                 </div>
 
-                {/* Фильтр по приоритету */}
+                {/* priority filter */}
                 <div className="space-y-1">
                     <PrioritySelect
                         value={priorityFilter}
@@ -173,7 +168,6 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
                     />
                 </div>
 
-                {/* Статистика на лету */}
                 <div className="flex items-center justify-around border-l border-zinc-800 pl-4 hidden md:flex font-mono text-[11px]">
                     <div className="text-center">
                         <span className="block text-zinc-500 uppercase tracking-widest text-[9px] mb-1">Найдено</span>
@@ -188,7 +182,7 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
                 </div>
             </div>
 
-            {/* 3. СПИСОК ПРОЕКТОВ (ГРИД) */}
+            {/* projects list */}
             {loading ? (
                 <div className="text-center py-20 text-zinc-500 font-mono text-xs uppercase tracking-widest">
                     Загрузка проектов...
@@ -210,30 +204,30 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
                             className="group relative flex flex-col justify-between rounded-xl border border-zinc-800 bg-zinc-950 p-6 transition-all hover:border-zinc-500 hover:shadow-lg hover:shadow-white/5 cursor-pointer"
                         >
                             <div>
-                                {/* Шапка карточки */}
                                 <div className="flex items-start justify-between gap-2 mb-4">
                                     <span className="rounded bg-zinc-900 border border-zinc-800 px-2 py-0.5 text-[10px] font-mono text-zinc-400 uppercase tracking-wider">
                                         {getPriorityLabel(project.priority)} приоритет
                                     </span>
                                     <div className="flex items-center space-x-2">
                                         <span className="text-[10px] text-zinc-600 font-mono mr-1">ID: {project.id}</span>
-                                        {/* Иконка крестика удаления */}
-                                        <button
-                                            onClick={(e) => handleDeleteProject(project.id, e)}
-                                            className="text-zinc-600 hover:text-red-500 transition-colors p-1 text-xs font-mono"
-                                            title="Удалить проект"
-                                        >
-                                            ✕
-                                        </button>
+                                        
+                                        {(currentUser?.role === 'Leader' || currentUser?.role === 'ProjectManager') && (
+                                            <button
+                                                onClick={(e) => handleDeleteProject(project.id, e)}
+                                                className="text-zinc-600 hover:text-red-500 transition-colors p-1 text-xs font-mono"
+                                                title="Удалить проект"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Название */}
+
                                 <h3 className="text-md font-medium text-white group-hover:text-zinc-300 transition-colors uppercase tracking-wide">
                                     {project.name}
                                 </h3>
 
-                                {/* Заказчик / Исполнитель */}
                                 <div className="mt-3 space-y-1 text-xs border-t border-zinc-900 pt-3">
                                     <div className="flex justify-between">
                                         <span className="text-zinc-500">Компания-Заказчик:</span>
@@ -245,14 +239,13 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
                                     </div>
                                 </div>
 
-                                {/* Сроки */}
+
                                 <div className="mt-3 flex justify-between bg-zinc-900/30 rounded px-2.5 py-1.5 text-[11px] font-mono text-zinc-400">
                                     <span>С: {formatDate(project.startDate)}</span>
                                     <span>По: {formatDate(project.endDate)}</span>
                                 </div>
                             </div>
 
-                            {/* Футер карточки (Менеджер и Команда) */}
                             <div className="mt-6 border-t border-zinc-900 pt-4 flex items-center justify-between">
                                 <div>
                                     <p className="text-[9px] uppercase tracking-wider text-zinc-500 font-mono">Руководитель</p>
@@ -276,22 +269,22 @@ export default function ProjectDashboard({ onStartWizard, currentUser }: Project
                 <ProjectDetailsModal
                     project={selectedProject}
                     onClose={() => setSelectedProject(null)}
-                    // Вот сюда мы и вставляем этот парт!
                     onEdit={(proj) => {
-                        setSelectedProject(null); // Закрываем модалку деталей
-                        setEditingProject(proj);  // Передаем проект в стейт редактирования (что автоматически откроет вторую модалку)
+                        setSelectedProject(null); 
+                        setEditingProject(proj);  
                     }}
+                    User = {currentUser}
                 />
             )}
 
-            {/* Модалка редактирования (откроется сразу после закрытия деталей, так как стейт изменился) */}
+            {/* Edit modal */}
             {editingProject && (
                 <ProjectEditModal
                     project={editingProject}
                     onClose={() => setEditingProject(null)}
                     onSave={() => {
                         setEditingProject(null);
-                        fetchProjects(); // Перезагружаем список с бэка после сохранения
+                        fetchProjects(); 
                     }}
                 />
             )}

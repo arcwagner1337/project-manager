@@ -27,20 +27,16 @@ export default function EmployeeSearchSelect({
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // ХИТРЫЙ ТРЮК: переводим массив ID в строку (например, "1,2,5").
-  // Строка — это примитив. Она не меняет ссылку при перерендере родителя,
-  // поэтому эффект сработает ТОЛЬКО если состав команды реально изменился.
   const excludeIdsKey = excludeIds.join(',');
 
   useEffect(() => {
-    let isMounted = true; // Защита от race conditions (гонки запросов)
+    let isMounted = true; // Protection against race conditions
 
     const fetchData = async () => {
       setLoading(true);
       try {
         if (!search.trim()) {
-          // Сценарий 1. Загрузка списка по умолчанию (когда поиск пустой)
-          // const res = await axios.get('https://localhost:7291/api/Employees');
+          // Loading the default list (when the search is empty)
           const res = await axios.get('/api/Employees');
 
           if (!isMounted) return;
@@ -52,10 +48,9 @@ export default function EmployeeSearchSelect({
           }));
 
           const filtered = mapped.filter(emp => !excludeIds.includes(emp.id));
-          setEmployees(filtered.slice(0, 5)); // Здесь жесткий лимит в 5 оставляем
+          setEmployees(filtered.slice(0, 5)); // limit 5 res
         } else {
-          // Сценарий 2. Живой AJAX-поиск по query
-          // const res = await axios.get('https://localhost:7291/api/Employees/search', {
+          // AJAX-search by query
           const res = await axios.get('/api/Employees/search', {
 
             params: { query: search }
@@ -69,7 +64,7 @@ export default function EmployeeSearchSelect({
           }));
 
           const filtered = mapped.filter(emp => !excludeIds.includes(emp.id));
-          setEmployees(filtered); // ТУТ ЛИМИТА НЕТ — выводим вообще всех, кого нашел бэкенд!
+          setEmployees(filtered); //no limit
         }
       } catch (err) {
         console.error("Ошибка при получении сотрудников:", err);
@@ -78,11 +73,11 @@ export default function EmployeeSearchSelect({
       }
     };
 
-    // Если строка пустая — дропаем дебаунс и грузим топ-5 мгновенно
+    // If the string is empty, drop the debounce and load the top 5 instantly.
     if (!search.trim()) {
       fetchData();
     } else {
-      // Если пишем — дебаунсим на 300мс, чтобы не спамить бэкенд на каждую букву
+      // When writing, we debounce by 300ms to avoid spamming the backend with every keystroke.
       const delayDebounceFn = setTimeout(() => {
         fetchData();
       }, 300);
@@ -96,7 +91,7 @@ export default function EmployeeSearchSelect({
     return () => {
       isMounted = false;
     };
-  }, [search, excludeIdsKey]); // Эффект железно следит за вводом и за составом команды
+  }, [search, excludeIdsKey]); // The effect strictly monitors the input and the composition of the team.
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

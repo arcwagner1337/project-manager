@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+п»їusing Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using test_task.Data;
 using test_task.Models;
@@ -14,7 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 1. Конфигурация Identity
+//  Identity conf
 builder.Services.AddIdentity<Employee, IdentityRole<int>>(options =>
 {
     options.Password.RequiredLength = 4;
@@ -26,7 +26,7 @@ builder.Services.AddIdentity<Employee, IdentityRole<int>>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// 2. Настройка Кук под API (без редиректов на несуществующие страницы)
+// cookie settings
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
@@ -39,7 +39,7 @@ builder.Services.ConfigureApplicationCookie(options =>
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return Task.CompletedTask;
         },
-        // ЭТОЙ ЧАСТИ ТЕБЕ НЕ ХВАТАЛО:
+        
         OnRedirectToAccessDenied = context =>
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -47,7 +47,7 @@ builder.Services.ConfigureApplicationCookie(options =>
         }
     };
 });
-// 3. CORS с поддержкой Credentials (куки)
+// cors
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -55,7 +55,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://192.168.31.118:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // ОБЯЗАТЕЛЬНО для кук!
+              .AllowCredentials(); 
     });
 });
 
@@ -71,13 +71,13 @@ app.UseCors("AllowReactApp");
 
 //app.UseHttpsRedirection();
 
-// ПОРЯДОК: Сначала Аутентификация, затем Авторизация
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// 4. Магия автоматических миграций в Docker + сидинг ролей
+// role seeding and migrations
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -85,13 +85,13 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<AppDbContext>();
 
-        // Эта строчка сама накатит миграции на твой докер-контейнер базы при старте приложения!
+        
         context.Database.Migrate();
 
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
         var userManager = services.GetRequiredService<UserManager<Employee>>();
 
-        // Сидинг ролей
+        
         string[] roles = { "Leader", "ProjectManager", "Employee" };
         foreach (var role in roles)
         {
@@ -101,9 +101,8 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // ====================================================================
-        // 1. УПРАВЛЕНИЕ РУКОВОДИТЕЛЕМ (Leader)
-        // ====================================================================
+        
+        // Leader
         string adminEmail = "leader@test.com";
         var leader = await userManager.FindByEmailAsync(adminEmail);
 
@@ -113,8 +112,8 @@ using (var scope = app.Services.CreateScope())
             {
                 UserName = adminEmail,
                 Email = adminEmail,
-                FirstName = "арквагнер",
-                LastName = "Администратор",
+                FirstName = "Р°СЂРєРІР°РіРЅРµСЂ",
+                LastName = "РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ",
                 EmailConfirmed = true
             };
 
@@ -126,16 +125,15 @@ using (var scope = app.Services.CreateScope())
         }
         else
         {
-            // Если админ уже есть в базе, но без роли — принудительно привязываем её
+            
             if (!await userManager.IsInRoleAsync(leader, "Leader"))
             {
                 await userManager.AddToRoleAsync(leader, "Leader");
             }
         }
 
-        // ====================================================================
-        // 2. УПРАВЛЕНИЕ ПРОЕКТНЫМИ МЕНЕДЖЕРАМИ (PM)
-        // ====================================================================
+        
+        // PM
         for (int i = 1; i <= 2; i++)
         {
             var pmEmail = $"pm{i}@test.com";
@@ -147,8 +145,8 @@ using (var scope = app.Services.CreateScope())
                 {
                     UserName = pmEmail,
                     Email = pmEmail,
-                    FirstName = $"Иван{i}",
-                    LastName = $"Менеджеров{i}",
+                    FirstName = $"РРІР°РЅ{i}",
+                    LastName = $"РњРµРЅРµРґР¶РµСЂРѕРІ{i}",
                     EmailConfirmed = true
                 };
                 var resultPm = await userManager.CreateAsync(pm, "password123");
@@ -159,7 +157,6 @@ using (var scope = app.Services.CreateScope())
             }
             else
             {
-                // Если PM существует, проверяем его роль
                 if (!await userManager.IsInRoleAsync(pm, "ProjectManager"))
                 {
                     await userManager.AddToRoleAsync(pm, "ProjectManager");
@@ -167,9 +164,8 @@ using (var scope = app.Services.CreateScope())
             }
         }
 
-        // ====================================================================
-        // 3. УПРАВЛЕНИЕ ОБЫЧНЫМИ СОТРУДНИКАМИ (Employee)
-        // ====================================================================
+   
+        // Employee
         for (int i = 1; i <= 3; i++)
         {
             var empEmail = $"worker{i}@test.com";
@@ -181,8 +177,8 @@ using (var scope = app.Services.CreateScope())
                 {
                     UserName = empEmail,
                     Email = empEmail,
-                    FirstName = $"Сидор{i}",
-                    LastName = $"Работягов{i}",
+                    FirstName = $"РЎРёРґРѕСЂ{i}",
+                    LastName = $"Р Р°Р±РѕС‚СЏРіРѕРІ{i}",
                     EmailConfirmed = true
                 };
                 var resultEmp = await userManager.CreateAsync(worker, "password123");
@@ -193,7 +189,6 @@ using (var scope = app.Services.CreateScope())
             }
             else
             {
-                // Если рабочий существует, проверяем его роль
                 if (!await userManager.IsInRoleAsync(worker, "Employee"))
                 {
                     await userManager.AddToRoleAsync(worker, "Employee");
@@ -204,7 +199,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ошибка при накате миграций или сидинге данных");
+        logger.LogError(ex, "РћС€РёР±РєР° РїСЂРё РЅР°РєР°С‚Рµ РјРёРіСЂР°С†РёР№ РёР»Рё СЃРёРґРёРЅРіРµ РґР°РЅРЅС‹С…");
     }
 }
 

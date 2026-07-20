@@ -25,7 +25,7 @@ export default function PrioritySelect({ value, onChange }: PrioritySelectProps)
 
   const selectedOption = options.find(opt => opt.value === value) || options[0];
 
-  // Закрываем дропдаун при клике вне его области
+  // Close the dropdown when clicking outside its area.
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -42,20 +42,19 @@ export default function PrioritySelect({ value, onChange }: PrioritySelectProps)
         Приоритет
       </label>
       
-      {/* Кнопка открытия списка */}
+      {/* List opening button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex w-full items-center justify-between rounded-lg bg-black p-2.5 text-xs text-white border border-zinc-800 transition-all hover:border-zinc-700 focus:border-zinc-400 text-left outline-none cursor-pointer"
       >
         <span>{selectedOption.label}</span>
-        {/* Иконка стрелочки, которая аккуратно вращается при открытии */}
         <span className={`text-[10px] text-zinc-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
           ▼
         </span>
       </button>
 
-      {/* Выпадающий Ч/Б список */}
+      {/* list */}
       {isOpen && (
         <div className="absolute left-0 z-50 mt-1 w-full rounded-lg border border-zinc-800 bg-black py-1 shadow-xl shadow-black/80 animate-in fade-in duration-100">
           {options.map((option) => (
@@ -68,8 +67,8 @@ export default function PrioritySelect({ value, onChange }: PrioritySelectProps)
               }}
               className={`w-full px-3 py-2 text-left text-xs transition-colors cursor-pointer block ${
                 option.value === value
-                  ? 'bg-zinc-900 text-white font-medium' // Активный пункт — темно-серый фон
-                  : 'text-zinc-400 hover:bg-zinc-950 hover:text-white' // При ховере легкий серый оттенок
+                  ? 'bg-zinc-900 text-white font-medium' 
+                  : 'text-zinc-400 hover:bg-zinc-950 hover:text-white' 
               }`}
             >
               {option.label}

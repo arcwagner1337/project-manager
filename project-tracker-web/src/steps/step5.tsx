@@ -12,10 +12,8 @@ export default function Step5Documents() {
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Достаем файлы из глобального стейта (если их нет, берем пустой массив)
     const currentFiles = formData.documents || [];
 
-    // Форматирование размера файла
     const formatBytes = (bytes: number) => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
@@ -39,8 +37,6 @@ export default function Step5Documents() {
         for (let i = 0; i < fileList.length; i++) {
             newFilesArray.push(fileList[i]);
         }
-
-        // Объединяем старые файлы из контекста с новыми и пушим обратно в контекст
         updateField('documents', [...currentFiles, ...newFilesArray]);
     };
 
@@ -56,7 +52,7 @@ export default function Step5Documents() {
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             processFiles(e.target.files);
-            e.target.value = ''; // Сброс инпута, чтобы убрать фокус с проводника
+            e.target.value = '';
         }
     };
 
@@ -73,7 +69,7 @@ export default function Step5Documents() {
         <div className="space-y-6">
             <h2 className="text-lg font-medium text-white uppercase tracking-wider">Шаг 5. Документы проекта</h2>
 
-            {/* Зона Drag & Drop */}
+            {/* Drag & Drop */}
             <div
                 onDragEnter={handleDrag}
                 onDragOver={handleDrag}
@@ -92,7 +88,6 @@ export default function Step5Documents() {
                     className="hidden"
                 />
 
-                {/* Иконка */}
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950">
                     <span className="text-sm font-semibold text-white">↑</span>
                 </div>
@@ -110,7 +105,7 @@ export default function Step5Documents() {
                 <p className="mt-1 text-xs text-zinc-500 uppercase tracking-widest font-mono">PDF, DOCX, XLSX до 10MB</p>
             </div>
 
-            {/* Список загруженных файлов */}
+            {/* List of uploaded files */}
             {currentFiles.length > 0 && (
                 <div className="space-y-2">
                     <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-500">

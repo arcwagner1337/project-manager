@@ -17,10 +17,9 @@ export default function Step3() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 1. Восстанавливаем выбранного ПМ при переходе назад-вперед без сброса стейта
+
   useEffect(() => {
     if (formData.projectManagerId && !selectedManager) {
-      // axios.get(`https://localhost:7291/api/Employees`)
       axios.get(`/api/employees`)
 
         .then(res => {
@@ -37,7 +36,6 @@ export default function Step3() {
     }
   }, [formData.projectManagerId]);
 
-  // 2. Живой AJAX-поиск с дебаунсом
   useEffect(() => {
     if (!searchQuery.trim()) {
       setEmployees([]);
@@ -46,7 +44,6 @@ export default function Step3() {
 
     const delayDebounceFn = setTimeout(() => {
       setIsLoading(true);
-      // axios.get(`https://localhost:7291/api/Employees/search`, {
       axios.get(`/api/employees/search`, {
 
         params: { query: searchQuery }
@@ -57,8 +54,6 @@ export default function Step3() {
           fullName: `${e.lastName} ${e.firstName} ${e.middleName || ''}`.trim(),
           email: e.email
         }));
-
-        // БИЗНЕС-ЛОГИКА: Исключаем сотрудников, которые уже выбраны в качестве Исполнителей (Шаг 4)
         const filtered = mapped.filter(emp => !formData.employeeIds.includes(emp.id));
         setEmployees(filtered);
       })

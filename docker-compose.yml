@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: project_postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: project_tracker
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_INITDB_ARGS: --encoding=UTF8
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-net
+    restart: always
+
+  backend:
+    build:
+      context: ./server/test-task
+      dockerfile: dockerfile
+    container_name: project_backend
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=project_tracker;Username=dev_user;Password=dev_password
+      - ASPNETCORE_ENVIRONMENT=Production
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    depends_on:
+      - postgres
+    networks:
+      - app-net
+    restart: always
+
+  frontend:
+    build:
+      context: ./project-tracker-web
+      dockerfile: dockerfile
+    container_name: project_frontend
+    networks:
+      - app-net
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    container_name: project_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app-net
+    restart: always
+
+volumes:
+  pgdata:
+
+networks:
+  app-net:
+    driver: bridge

@@ -59,7 +59,6 @@ export default function Step1BasicInfo() {
             max="5"
             value={formData.priority}
             onChange={(e) => updateField('priority', parseInt(e.target.value, 10))}
-            // Стилизуем ползунок под белый цвет в вебките
             className="h-[2px] w-full cursor-pointer appearance-none bg-zinc-800 accent-white"
           />
           <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-900 text-xs font-bold text-white">

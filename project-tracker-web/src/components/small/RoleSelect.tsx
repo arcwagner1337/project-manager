@@ -22,7 +22,7 @@ export default function RoleSelect({ value, onChange }: RoleSelectProps) {
 
   const selectedOption = options.find(opt => opt.value === value) || options[0];
 
-  // Закрываем дропдаун при клике вне его области
+  // Close the dropdown when clicking outside its area.
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -39,7 +39,7 @@ export default function RoleSelect({ value, onChange }: RoleSelectProps) {
         Роль в системе
       </label>
       
-      {/* Кнопка открытия */}
+      {/* Open button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -51,7 +51,7 @@ export default function RoleSelect({ value, onChange }: RoleSelectProps) {
         </span>
       </button>
 
-      {/* Выпадающий список */}
+      {/* list */}
       {isOpen && (
         <div className="absolute left-0 z-50 mt-1 w-full rounded border border-zinc-800 bg-black py-1 shadow-xl shadow-black/80 font-mono">
           {options.map((option) => (

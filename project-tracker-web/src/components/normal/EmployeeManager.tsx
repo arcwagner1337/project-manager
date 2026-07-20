@@ -18,24 +18,22 @@ export default function EmployeeManager() {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Состояния для формы (создание / редактирование)
+    // form states
     const [formData, setFormData] = useState<Employee>({
         firstName: '',
         lastName: '',
         middleName: '',
         email: '',
-        role: 'Employee', // <-- По умолчанию обычный сотрудник
+        role: 'Employee', // default employee
         password: ''
     });
     const [editingId, setEditingId] = useState<number | null>(null);
     const [showForm, setShowForm] = useState(false);
 
-    // Глобальный URL твоего бэкенда
-    // const API_URL = 'https://localhost:7291/api/employees';
     const API_URL = '/api/employees';
 
 
-    // Получение списка (обычное или через поиск)
+    // Retrieving the list (standard or via search)
     const fetchEmployees = async (query = '') => {
         setLoading(true);
         try {
@@ -53,22 +51,22 @@ export default function EmployeeManager() {
         fetchEmployees();
     }, []);
 
-    // Хандлер поиска с AJAX
+    // AJAX search handler
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchQuery(value);
-        fetchEmployees(value); // Мгновенный поиск при вводе
+        fetchEmployees(value); 
     };
 
-    // Сохранение (Create или Update)
+    // Saving (Create or Update)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             if (editingId) {
-                // PUT запрос (Обновление)
+                // update
                 await axios.put(`${API_URL}/${editingId}`, formData);
             } else {
-                // POST запрос (Создание)
+                // create
                 await axios.post(API_URL, formData);
             }
             resetForm();
@@ -78,7 +76,7 @@ export default function EmployeeManager() {
         }
     };
 
-    // Удаление
+    // delete
     const handleDelete = async (id: number) => {
         if (!window.confirm("Удалить сотрудника из системы?")) return;
         try {
@@ -96,7 +94,7 @@ export default function EmployeeManager() {
             lastName: emp.lastName,
             middleName: emp.middleName || '',
             email: emp.email,
-            role: emp.role || 'Employee' // <-- Передаем роль в форму редактирования
+            role: emp.role || 'Employee' 
         });
         setShowForm(true);
     };
@@ -109,7 +107,7 @@ export default function EmployeeManager() {
 
     return (
         <div className="max-w-5xl mx-auto px-4">
-            {/* ЗАГОЛОВОК И КНОПКА ДОБАВЛЕНИЯ */}
+            {/* header and add button */}
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-xl font-bold tracking-tight uppercase font-mono">Состав Команды</h1>
@@ -125,7 +123,7 @@ export default function EmployeeManager() {
                 )}
             </div>
 
-            {/* ФОРМА СОЗДАНИЯ / РЕДАКТИРОВАНИЯ */}
+            {/* create/edit form */}
             {showForm && (
                 <form onSubmit={handleSubmit} className="mb-8 p-6 bg-zinc-950 border border-zinc-900 rounded-lg space-y-4 animate-fadeIn">
                     <h3 className="text-xs uppercase font-mono tracking-widest text-zinc-400 border-b border-zinc-900 pb-2">
@@ -197,7 +195,7 @@ export default function EmployeeManager() {
                         </div>
                     )}
 
-                    {/* Выпадающий список выбора Роли */}
+                    {/* role list */}
                     <RoleSelect
                         value={formData.role}
                         onChange={(newRole) => setFormData({ ...formData, role: newRole })}
@@ -206,39 +204,39 @@ export default function EmployeeManager() {
                 </form>
             )}
 
-            {/* ЖИВОЙ ПОИСК */}
+            {/* search */}
             <div className="mb-6 relative">
                 <input
                     type="text"
-                    placeholder="ЖИВОЙ ПОИСК ПО ФИО ИЛИ EMAIL..."
+                    placeholder="ПОИСК ПО ФИО ИЛИ EMAIL..."
                     value={searchQuery}
                     onChange={handleSearchChange}
                     className="w-full bg-zinc-950 border border-zinc-900 text-zinc-300 font-mono text-xs tracking-wider p-3 pl-4 rounded focus:outline-none focus:border-zinc-700 transition-colors placeholder:text-zinc-700"
                 />
             </div>
 
-            {/* ТАБЛИЦА СОТРУДНИКОВ */}
+            {/* employee list */}
             <div className="border border-zinc-900 rounded-lg overflow-hidden bg-zinc-950/40">
                 <table className="w-full text-left border-collapse font-mono text-xs">
                     <thead>
                         <tr className="border-b border-zinc-900 bg-zinc-950 text-zinc-500 uppercase tracking-wider">
                             <th className="p-4 font-normal">Сотрудник</th>
                             <th className="p-4 font-normal">Email</th>
-                            <th className="p-4 font-normal">Роль</th> {/* Поставили перед действиями */}
+                            <th className="p-4 font-normal">Роль</th> 
                             <th className="p-4 font-normal text-right">Действия</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
                             <tr>
-                                {/* colSpan теперь 4 */}
+                                
                                 <td colSpan={4} className="p-8 text-center text-zinc-600 uppercase tracking-widest animate-pulse">
                                     Загрузка базы данных...
                                 </td>
                             </tr>
                         ) : employees.length === 0 ? (
                             <tr>
-                                {/* colSpan теперь 4 */}
+                                
                                 <td colSpan={4} className="p-8 text-center text-zinc-600 uppercase tracking-widest">
                                     Никого не найдено
                                 </td>
@@ -251,7 +249,7 @@ export default function EmployeeManager() {
                                     </td>
                                     <td className="p-4 text-zinc-400">{emp.email}</td>
 
-                                    {/* ВОТ СЮДА КРАСИВО ВСТАЕТ СТИЛИЗОВАННАЯ РОЛЬ */}
+                                    
                                     <td className="p-4">
                                         <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${emp.role === 'Leader' ? 'bg-white text-black' :
                                             emp.role === 'ProjectManager' ? 'border border-zinc-500 text-zinc-300' : 'text-zinc-500'

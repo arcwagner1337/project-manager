@@ -19,15 +19,12 @@ namespace test_task.Controllers
             _userManager = userManager;
         }
 
-        // 1. Вход в систему
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            // Ищем сотрудника по Email
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return Unauthorized(new { message = "Неверный логин или пароль" });
 
-            // Проверяем пароль и создаем сессию (куку)
             var result = await _signInManager.PasswordSignInAsync(user.UserName!, dto.Password, isPersistent: true, lockoutOnFailure: false);
 
             if (result.Succeeded)
@@ -45,7 +42,6 @@ namespace test_task.Controllers
             return Unauthorized(new { message = "Неверный логин или пароль" });
         }
 
-        // 2. Выход из системы
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
@@ -54,7 +50,6 @@ namespace test_task.Controllers
             return Ok(new { message = "Успешный выход" });
         }
 
-        // 3. Проверка текущей сессии (Кто я?)
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
@@ -63,7 +58,6 @@ namespace test_task.Controllers
                 return Unauthorized(new { message = "Пользователь не авторизован" });
             }
 
-            // Достаем ID из клеймов куки
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
 
@@ -85,17 +79,14 @@ namespace test_task.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
         {
-            // Достаем ID текущего юзера из куки
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var user = await _userManager.FindByIdAsync(userId!);
             if (user == null) return Unauthorized();
 
-            // 1. Обновляем имя напрямую из раздельных полей DTO
             user.FirstName = dto.FirstName;
             user.LastName = dto.LastName;
             user.MiddleName = dto.MiddleName;
 
-            // 2. Если пользователь меняет Email
             if (!string.Equals(user.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
             {
                 var emailExists = await _userManager.FindByEmailAsync(dto.Email);
@@ -103,14 +94,13 @@ namespace test_task.Controllers
                     return BadRequest(new { message = "Этот Email уже занят другим сотрудником" });
 
                 user.Email = dto.Email;
-                user.UserName = dto.Email; // Обычно Identity использует Email как UserName
+                user.UserName = dto.Email; 
             }
 
             var updateResult = await _userManager.UpdateAsync(user);
             if (!updateResult.Succeeded)
                 return BadRequest(new { message = "Ошибка при обновлении профиля", errors = updateResult.Errors });
 
-            // 3. Если запрошена смена пароля
             if (!string.IsNullOrEmpty(dto.CurrentPassword) && !string.IsNullOrEmpty(dto.NewPassword))
             {
                 var passwordResult = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
@@ -121,14 +111,13 @@ namespace test_task.Controllers
                 }
             }
 
-            // КРИТИЧНО: Перевыпускаем куку авторизации с новыми данными
             await _signInManager.RefreshSignInAsync(user);
 
             var roles = await _userManager.GetRolesAsync(user);
             return Ok(new
             {
                 id = user.Id,
-                fullName = user.FullName, // Твое вычисляемое свойство модели соберет новое имя само
+                fullName = user.FullName, 
                 email = user.Email,
                 role = roles.FirstOrDefault() ?? "Employee"
             });

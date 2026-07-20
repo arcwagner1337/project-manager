@@ -1,4 +1,4 @@
-# --- .NET (ASP.NET Core) ---
+# .NET (ASP.NET Core)
 [Bb]in/
 [Oo]bj/
 *.user
@@ -8,21 +8,20 @@
 .vs/
 .vscode/
 
-# --- React / Vite / Node ---
+# React / Vite / Node 
 node_modules/
 dist/
 .output/
 .vite/
 *.log
 
-# --- Секреты и настройки ---
-# Игнорируем файлы, где обычно хранятся пароли и строки подключения для локальной разработки
+# secrets and settings
 appsettings.Development.json
 .env
 .env.local
 .env.*.local
 
-# --- Базы данных (если есть локальные файлы) ---
+# db
 *.db
 *.db-journal
 *.sqlite

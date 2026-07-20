@@ -14,25 +14,23 @@ namespace test_task.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<ProjectDocument> ProjectDocuments { get; set; }
 
-        // МАГИЧЕСКАЯ СТРОЧКА: перенаправляет все запросы из контроллеров к Employees во встроенную Users.
-        // Это мгновенно починит все ошибки компиляции!
         public DbSet<Employee> Employees => Users;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // СТРОГО ПЕРВОЙ СТРОКОЙ!
+            base.OnModelCreating(modelBuilder); 
 
-            // Мапим пользователя Identity в твою таблицу Employees
+            
             modelBuilder.Entity<Employee>().ToTable("Employees");
 
-            // 1. Настраиваем связь Один-ко-Многим (Project -> ProjectManager)
+            // One to Many link Project -> ProjectManager
             modelBuilder.Entity<Project>()
                 .HasOne(p => p.ProjectManager)
                 .WithMany(e => e.ManagedProjects)
                 .HasForeignKey(p => p.ProjectManagerId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // 2. Настраиваем связь Многие-ко-Многим (Projects <-> Employees)
+            // Many to Many link Projects <-> Employees
             modelBuilder.Entity<Project>()
                 .HasMany(p => p.Employees)
                 .WithMany(e => e.Projects)
@@ -42,7 +40,7 @@ namespace test_task.Data
                     j => j.HasOne<Project>().WithMany().HasForeignKey("ProjectId")
                 );
 
-            // 3. Настраиваем связь Документов с Проектом
+            // docs link
             modelBuilder.Entity<ProjectDocument>()
                 .HasOne(d => d.Project)
                 .WithMany(p => p.Documents)

@@ -68,12 +68,12 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
       if (!formData.customerCompany.trim()) tempErrors.customerCompany = 'Укажите компанию-заказчика';
       if (!formData.executorCompany.trim()) tempErrors.executorCompany = 'Укажите компанию-исполнителя';
     } else if (step === 3) {
-      // Валидация Руководителя проекта
+
       if (!formData.projectManagerId) {
         tempErrors.projectManagerId = 'Необходимо выбрать руководителя проекта для перехода дальше';
       }
     } else if (step === 4) {
-      // Валидация Команды исполнителей
+
       if (!formData.employeeIds || formData.employeeIds.length === 0) {
         tempErrors.employeeIds = 'Добавьте хотя бы одного исполнителя в команду проекта';
       }
@@ -119,7 +119,7 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Кастомный хук для быстрого доступа к контексту
+
 export function useWizard() {
   const context = useContext(WizardContext);
   if (!context) {

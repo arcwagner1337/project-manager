@@ -15,10 +15,9 @@ interface ProfileViewProps {
 export default function ProfileView({ user, onUpdateSuccess, onLogoutSuccess }: ProfileViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   
-  // При переходе к редактированию бьем строку "Петров Иван Сидорович" по пробелам
   const nameParts = user.fullName.split(' ');
 
-  // Стейты для раздельных полей ФИО
+  // States for separate full name fields
   const [lastName, setLastName] = useState(nameParts[0] || '');
   const [firstName, setFirstName] = useState(nameParts[1] || '');
   const [middleName, setMiddleName] = useState(nameParts[2] || '');
@@ -32,7 +31,6 @@ export default function ProfileView({ user, onUpdateSuccess, onLogoutSuccess }: 
 
   const handleLogoutClick = async () => {
     try {
-    //   await axios.post('https://localhost:7291/api/auth/logout', {}, { withCredentials: true });
       await axios.post('/api/auth/logout', {}, { withCredentials: true });
 
       onLogoutSuccess();
@@ -47,9 +45,7 @@ export default function ProfileView({ user, onUpdateSuccess, onLogoutSuccess }: 
     setMessage(null);
 
     try {
-      // Передаем объект строго под твой новый UpdateProfileDto
       const res = await axios.put(
-        // 'https://localhost:7291/api/auth/update-profile',
         '/api/auth/update-profile',
 
         { 
@@ -63,7 +59,7 @@ export default function ProfileView({ user, onUpdateSuccess, onLogoutSuccess }: 
         { withCredentials: true }
       );
 
-      onUpdateSuccess(res.data); // Бэк вернет fullName, собранный заново
+      onUpdateSuccess(res.data); 
       setIsEditing(false);
       setCurrentPassword('');
       setNewPassword('');
@@ -92,7 +88,6 @@ export default function ProfileView({ user, onUpdateSuccess, onLogoutSuccess }: 
             onClick={() => { 
               setIsEditing(!isEditing); 
               setMessage(null);
-              // Сбрасываем к актуальным значениям при отмене
               const freshParts = user.fullName.split(' ');
               setLastName(freshParts[0] || '');
               setFirstName(freshParts[1] || '');
@@ -114,7 +109,7 @@ export default function ProfileView({ user, onUpdateSuccess, onLogoutSuccess }: 
         )}
 
         {!isEditing ? (
-          /* РЕЖИМ ПРОСМОТРА */
+          /* VIEW MODE */
           <div className="space-y-4">
             <div>
               <span className="text-zinc-600 block uppercase text-[10px]">Сотрудник</span>
@@ -140,7 +135,7 @@ export default function ProfileView({ user, onUpdateSuccess, onLogoutSuccess }: 
             </div>
           </div>
         ) : (
-          /* РЕЖИМ РЕДАКТИРОВАНИЯ */
+          /* EDIT MODE */
           <form onSubmit={handleSave} className="space-y-4">
             
             <div className="grid grid-cols-3 gap-2">

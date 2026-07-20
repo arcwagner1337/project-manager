@@ -14,7 +14,6 @@ interface ProjectWizardProps {
 }
 
 export default function ProjectWizard({ onSuccess, onCancel }: ProjectWizardProps) {
-    //   const { step, nextStep, prevStep } = useWizard();
     const { step, nextStep, prevStep, formData, resetWizard } = useWizard();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -26,7 +25,7 @@ export default function ProjectWizard({ onSuccess, onCancel }: ProjectWizardProp
         setSubmitError(null);
 
         try {
-            // ЭТАП 1. Создаем сам проект через чистый JSON
+            // Step 1 Create the project
             const projectPayload = {
                 name: formData.name,
                 customerCompany: formData.customerCompany,
@@ -38,7 +37,6 @@ export default function ProjectWizard({ onSuccess, onCancel }: ProjectWizardProp
                 employeeIds: formData.employeeIds
             };
 
-            // const projectResponse = await axios.post('https://localhost:7291/api/Projects', projectPayload, {
             const projectResponse = await axios.post('/api/Projects', projectPayload, {
 
                 headers: {
@@ -46,21 +44,18 @@ export default function ProjectWizard({ onSuccess, onCancel }: ProjectWizardProp
                 },
             });
 
-            // Вытаскиваем ID созданного проекта из ответа твоего контроллера
             const createdProjectId = projectResponse.data.projectId;
 
             console.log("ID созданного проекта:", createdProjectId);
             console.log("Файлы в formData:", formData.documents);
 
-            // ЭТАП 2. Если есть файлы, загружаем их в DocumentsController
+            // Step 2 If there are files, upload them to DocumentsController.
             if (formData.documents && formData.documents.length > 0 && createdProjectId) {
 
-                // Создаем массив промисов для параллельной загрузки всех файлов
                 const uploadPromises = formData.documents.map((file) => {
                     const fileFormData = new FormData();
-                    fileFormData.append('file', file); // Ключ должен быть строго 'file', как в параметре UploadDocument(..., IFormFile file)
+                    fileFormData.append('file', file); 
 
-                    // return axios.post(`https://localhost:7291/api/Documents/upload/${createdProjectId}`, fileFormData, {
                     return axios.post(`/api/Documents/upload/${createdProjectId}`, fileFormData, {
 
                         headers: {
@@ -68,12 +63,9 @@ export default function ProjectWizard({ onSuccess, onCancel }: ProjectWizardProp
                         },
                     });
                 });
-
-                // Ждем, пока все файлы загрузятся на сервер
                 await Promise.all(uploadPromises);
             }
 
-            // Если всё прошло гладко, показываем экран успеха
             setIsSuccess(true);
             if (onSuccess) onSuccess();
         } catch (err: any) {
@@ -109,7 +101,7 @@ export default function ProjectWizard({ onSuccess, onCancel }: ProjectWizardProp
         }
     };
 
-    // --- ЭКРАН УСПЕШНОГО СОЗДАНИЯ (Строгий монохром) ---
+    // SUCCESSFUL CREATION SCREEN 
     if (isSuccess) {
         return (
             <div className="mx-auto max-w-2xl rounded-xl bg-zinc-900 p-12 shadow-2xl border border-zinc-800 text-center text-zinc-100">
@@ -134,7 +126,7 @@ export default function ProjectWizard({ onSuccess, onCancel }: ProjectWizardProp
     return (
         <div className="mx-auto max-w-2xl rounded-xl bg-zinc-900 p-8 shadow-2xl border border-zinc-800 text-zinc-100">
 
-            {/* Линейка шагов (Ч/Б стиль) */}
+            {/* Step scale */}
             <div className="mb-10">
                 <div className="flex items-center justify-between">
                     {[1, 2, 3, 4, 5].map((num) => (
@@ -156,19 +148,19 @@ export default function ProjectWizard({ onSuccess, onCancel }: ProjectWizardProp
                 </div>
             </div>
 
-            {/* Вывод глобальной ошибки отправки */}
+            {/* Displaying a global submission error */}
             {submitError && (
                 <div className="mb-6 rounded-lg border border-red-900/50 bg-red-950/20 p-4 text-xs text-red-500 font-sans">
                     {submitError}
                 </div>
             )}
 
-            {/* Отрисовка текущего компонента */}
+            {/* Rendering the current component */}
             <div className="min-h-[280px]">
                 {renderStepContent()}
             </div>
 
-            {/* Кнопки управления */}
+            {/* Control buttons */}
             <div className="mt-8 flex justify-between border-t border-zinc-800 pt-6">
                 <button
                     onClick={prevStep}

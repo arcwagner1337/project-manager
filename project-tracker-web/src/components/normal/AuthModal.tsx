@@ -22,15 +22,13 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     setLoading(true);
 
     try {
-      // КРИТИЧНО: передаем сredentials, чтобы бэкенд смог высадить куку в браузер
       const res = await axios.post(
-        // 'https://localhost:7291/api/auth/login', 
         '/api/auth/login', 
         { email, password },
         { withCredentials: true }
       );
       
-      onLoginSuccess(res.data); // res.data содержит { id, fullName, email, role }
+      onLoginSuccess(res.data); 
       onClose();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Неверный логин или пароль');

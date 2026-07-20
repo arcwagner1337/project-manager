@@ -17,10 +17,8 @@ export default function Step4Team() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 1. Восстанавливаем карточки выбранных исполнителей при переключениях шагов "Назад-Вперед"
   useEffect(() => {
     if (formData.employeeIds.length > 0 && selectedList.length === 0) {
-      // axios.get(`https://localhost:7291/api/Employees`)
       axios.get(`/api/Employees`)
 
         .then(res => {
@@ -37,7 +35,7 @@ export default function Step4Team() {
     }
   }, [formData.employeeIds]);
 
-  // 2. AJAX-поиск исполнителей
+  // AJAX-Search
   useEffect(() => {
     if (!searchQuery.trim()) {
       setEmployees([]);
@@ -46,7 +44,6 @@ export default function Step4Team() {
 
     const delayDebounceFn = setTimeout(() => {
       setIsLoading(true);
-      // axios.get(`https://localhost:7291/api/Employees/search`, {
       axios.get(`/api/Employees/search`, {
 
         params: { query: searchQuery }
@@ -58,8 +55,6 @@ export default function Step4Team() {
           email: e.email
         }));
 
-        // БИЗНЕС-ЛОГИКА: 
-        // Исключаем тех, кто уже в команде, И исключаем выбранного ПМ (чтобы он не стал обычным работягой)
         const filtered = mapped.filter(emp => 
           !formData.employeeIds.includes(emp.id) && 
           emp.id !== formData.projectManagerId
