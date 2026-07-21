@@ -18,7 +18,7 @@ https://vtl8hl5w-8080.euw.devtunnels.ms/
 Используйте следующие данные для входа под разными ролями:
 
 | Роль | Логин (UserName) | Пароль |
-| :--- | :--- | :--- | :--- |
+| :--- | :--- | :--- |
 | **Администратор** | `leader@test.com` | `password_here` |
 | **Менеджер (PM)** | `pm1@test.com` | `password_here` |
 | **Сотрудник** | `worker1@test.com` | `password_here` |
