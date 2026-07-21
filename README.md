@@ -19,9 +19,9 @@ https://vtl8hl5w-8080.euw.devtunnels.ms/
 
 | Роль | Логин (UserName) | Пароль |
 | :--- | :--- | :--- |
-| **Администратор** | `leader@test.com` | `password_here` |
-| **Менеджер (PM)** | `pm1@test.com` | `password_here` |
-| **Сотрудник** | `worker1@test.com` | `password_here` |
+| **Администратор** | `leader@test.com` | `admin123` |
+| **Менеджер (PM)** | `pm1@test.com` | `password123` |
+| **Сотрудник** | `worker1@test.com` | `password123` |
 
 >  *В таблице приведены первые аккаунты для каждой роли. При необходимости вы также можете использовать учетные записи `pm2@test.com`, `worker2@test.com` и `worker3@test.com`.*
 
