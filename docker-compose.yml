@@ -17,7 +17,7 @@ services:
 
   backend:
     build:
-      context: ./server/test-task
+      context: ./server/
       dockerfile: dockerfile
     container_name: project_backend
     environment:

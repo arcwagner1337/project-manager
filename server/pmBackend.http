@@ -1,0 +1,6 @@
+@pmBackend_HostAddress = http://localhost:5223
+
+GET {{pmBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
