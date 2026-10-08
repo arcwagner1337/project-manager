@@ -9,7 +9,7 @@ docker compose up -d --build
 ---
 
 Проект уже развернут и доступен для тестирования по ссылке:
-https://vtl8hl5w-8080.euw.devtunnels.ms/
+https://tracker.arcwagner.duckdns.org/
 
 ---
 
